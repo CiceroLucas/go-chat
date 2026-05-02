@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Go Chat — Sistema de chat em tempo real com WebSockets">
+    <title>Go Chat — Chat em Tempo Real</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="auth-screen" class="screen active">
+        <div class="auth-container">
+            <div class="auth-header">
+                <div class="logo">
+                    <h1>Go Chat</h1>
+                </div>
+
+            </div>
+
+            <form id="login-form" class="auth-form active">
+                <h2>Entrar</h2>
+                <div class="input-group">
+                    <label for="login-username">Usuário</label>
+                    <input type="text" id="login-username" placeholder="Seu nome de usuário" required autocomplete="username">
+                </div>
+                <div class="input-group">
+                    <label for="login-password">Senha</label>
+                    <input type="password" id="login-password" placeholder="Sua senha" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-primary" id="login-btn">
+                    <span class="btn-text">Entrar</span>
+                    <span class="btn-loader" style="display:none;">Aguarde...</span>
+                </button>
+                <p class="auth-switch">
+                    Não tem conta? <a href="#" id="show-register">Criar conta</a>
+                </p>
+            </form>
+
+            <form id="register-form" class="auth-form">
+                <h2>Criar Conta</h2>
+                <div class="input-group">
+                    <label for="register-username">Usuário</label>
+                    <input type="text" id="register-username" placeholder="Escolha um nome" required minlength="3" maxlength="50">
+                </div>
+                <div class="input-group">
+                    <label for="register-email">Email</label>
+                    <input type="email" id="register-email" placeholder="seu@email.com" required>
+                </div>
+                <div class="input-group">
+                    <label for="register-password">Senha</label>
+                    <input type="password" id="register-password" placeholder="Mínimo 6 caracteres" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary" id="register-btn">
+                    <span class="btn-text">Criar Conta</span>
+                    <span class="btn-loader" style="display:none;">Aguarde...</span>
+                </button>
+                <p class="auth-switch">
+                    Já tem conta? <a href="#" id="show-login">Entrar</a>
+                </p>
+            </form>
+
+            <div id="auth-error" class="error-message" style="display:none;"></div>
+        </div>
+    </div>
+
+    <div id="chat-screen" class="screen">
+
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="user-info">
+                    <span class="user-avatar" id="user-avatar">U</span>
+                    <span class="user-name" id="user-name">Usuário</span>
+                </div>
+                <button class="btn btn-secondary btn-small" id="logout-btn" title="Sair" style="font-size: 0.8rem; padding: 4px 8px; min-height: auto;">Sair</button>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <h3>Salas</h3>
+                    <button class="btn btn-icon btn-small" id="create-room-btn" title="Criar sala">+</button>
+                </div>
+                <ul id="room-list" class="room-list">
+
+                </ul>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Online <span id="online-count">(0)</span></h3>
+                <ul id="user-list" class="user-list">
+
+                </ul>
+            </div>
+        </aside>
+
+        <main class="chat-main">
+
+            <header class="chat-header">
+                <button class="btn btn-icon mobile-menu" id="toggle-sidebar">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+                </button>
+                <div class="chat-room-info">
+                    <h2 id="current-room-name">Selecione uma sala</h2>
+                    <span id="current-room-status" class="room-status"></span>
+                </div>
+                <div class="connection-status" id="connection-status">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Desconectado</span>
+                </div>
+            </header>
+
+            <div class="messages-container" id="messages-container">
+                <div class="messages-empty" id="messages-empty">
+                    <svg class="empty-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <p>Selecione uma sala para começar a conversar</p>
+                </div>
+                <div id="messages" class="messages">
+
+                </div>
+            </div>
+
+            <div class="message-input-container" id="message-input-container" style="display:none;">
+                <form id="message-form" class="message-form">
+                    <input type="text" id="message-input" placeholder="Digite sua mensagem..." maxlength="5000" autocomplete="off">
+                    <button type="submit" class="btn btn-send" id="send-btn" title="Enviar">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <div id="create-room-modal" class="modal" style="display:none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <h3>Criar Nova Sala</h3>
+            <form id="create-room-form">
+                <div class="input-group">
+                    <label for="room-name-input">Nome da Sala</label>
+                    <input type="text" id="room-name-input" placeholder="Ex: Projeto X" required maxlength="100">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="cancel-room-btn">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Criar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
