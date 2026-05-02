@@ -18,8 +18,6 @@
 - [Protocolo WebSocket](#-protocolo-websocket)
 - [Frontend](#-frontend)
 - [Testes](#-testes)
-- [Sugestões de Melhoria](#-sugestões-de-melhoria)
-
 ---
 
 ## Sobre o Projeto
